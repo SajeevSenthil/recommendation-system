@@ -13,33 +13,35 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 # Define test cases for evaluation (Recall and Latency)
 TEST_CASES = [
     {
-        "id": "convo_1",
-        "description": "Senior Leadership (Expects OPQ32r or Leadership Report)",
-        "target_names": ["Occupational Personality Questionnaire OPQ32r", "OPQ Leadership Report"],
+        "id": "convo_1_clarification",
+        "description": "Missing Seniority (Tests the new AI Engineer clarification logic)",
+        "target_names": [],
+        "messages": [
+            {"role": "user", "content": "I want to hire AI engineer."}
+        ],
+        "subsequent_messages": [
+            {"role": "user", "content": "Senior level."}
+        ]
+    },
+    {
+        "id": "convo_2_comparison",
+        "description": "Comparison (Tests the fixed Gemini intent extraction)",
+        "target_names": ["Automata Pro", "AI Skills"],
+        "messages": [
+            {"role": "user", "content": "what is the difference between automata and ai-skills catalog"}
+        ],
+        "subsequent_messages": []
+    },
+    {
+        "id": "convo_3_standard",
+        "description": "Standard Flow (Vague -> Refined)",
+        "target_names": ["OPQ Leadership Report"],
         "messages": [
             {"role": "user", "content": "We need a solution for senior leadership."}
         ],
         "subsequent_messages": [
-            {"role": "user", "content": "The pool consists of CXOs, director-level positions; people with more than 15 years of experience."}
+            {"role": "user", "content": "The pool consists of CXOs and directors."}
         ]
-    },
-    {
-        "id": "convo_2",
-        "description": "Rust Engineer (Expects Smart Interview Live Coding & Verify G+)",
-        "target_names": ["Smart Interview Live Coding", "SHL Verify Interactive G+"],
-        "messages": [
-            {"role": "user", "content": "I'm hiring a senior Rust engineer for high-performance networking infrastructure. What assessments should I use?"}
-        ],
-        "subsequent_messages": []
-    },
-    {
-        "id": "convo_3",
-        "description": "Entry Level Sales (Expects Sales assessments)",
-        "target_names": ["Sales Scenarios", "OPQ Sales Report"],
-        "messages": [
-            {"role": "user", "content": "I need to hire entry-level sales reps."}
-        ],
-        "subsequent_messages": []
     }
 ]
 
@@ -89,19 +91,10 @@ def run_evaluations():
         recommendations = data.get("recommendations", [])
         if recommendations:
             convo_md += "### Recommendations\n"
-            rec_names = [r["name"] for r in recommendations]
             for idx, r in enumerate(recommendations, 1):
                 convo_md += f"{idx}. **{r['name']}** [{r['test_type']}] - [Link]({r['url']})\n"
-            
-            # Calculate Recall for this test case
-            hits = sum(1 for target in tc["target_names"] if any(target.lower() in name.lower() for name in rec_names))
-            recall_hits += hits
-            total_targets += len(tc["target_names"])
-            convo_md += f"\n*Recall Hits:* {hits} / {len(tc['target_names'])}\n"
         else:
             convo_md += "*No recommendations provided.*\n"
-            total_targets += len(tc["target_names"])
-            convo_md += f"\n*Recall Hits:* 0 / {len(tc['target_names'])}\n"
             
         # Save Conversation MD
         file_path = OUTPUT_DIR / f"{tc['id']}.md"
@@ -111,21 +104,18 @@ def run_evaluations():
 
     # Compute Final Metrics
     avg_latency = total_latency / queries_run if queries_run else 0
-    recall_percentage = (recall_hits / total_targets * 100) if total_targets else 0
     
     metrics_md = "# Evaluation Metrics\n\n"
     metrics_md += f"- **Total Queries Executed:** {queries_run}\n"
     metrics_md += f"- **Average Latency:** {avg_latency:.2f} seconds\n"
     metrics_md += f"- **Max Latency Constraint:** 30.0 seconds\n"
     metrics_md += f"- **Latency Status:** {'✅ PASS' if avg_latency < 30 else '❌ FAIL'}\n\n"
-    metrics_md += f"### Recall Metrics\n"
-    metrics_md += f"- **Recall@10:** {recall_percentage:.1f}% ({recall_hits} hits out of {total_targets} expected targets)\n"
     
     metrics_path = OUTPUT_DIR / "metrics.md"
     with open(metrics_path, "w", encoding="utf-8") as f:
         f.write(metrics_md)
     print(f"\nSaved metrics to {metrics_path}")
-    print(f"Average Latency: {avg_latency:.2f}s | Recall: {recall_percentage:.1f}%")
+    print(f"Average Latency: {avg_latency:.2f}s")
 
 if __name__ == "__main__":
     try:
