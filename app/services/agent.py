@@ -227,77 +227,6 @@ def build_comparison(items: list[str], meta: list[dict], history: str = "") -> d
     }
 
 
-def _name_key(name: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "", name.lower())
-
-
-def _find(meta: list[dict], name: str) -> dict | None:
-    target = _name_key(name)
-    return next((item for item in meta if _name_key(item["name"]) == target), None)
-
-
-def _pin_names(query: str, meta: list[dict]) -> list[dict]:
-    q = query.lower()
-    names: list[str] = []
-    if any(term in q for term in ("cxo", "executive", "senior leadership", "director-level", "leadership benchmark")):
-        names += ["Occupational Personality Questionnaire OPQ32r", "OPQ Universal Competency Report 2.0", "OPQ Leadership Report"]
-    if any(term in q for term in ("rust", "networking infrastructure")):
-        names += ["Smart Interview Live Coding", "Linux Programming (General)", "Networking and Implementation (New)", "SHL Verify Interactive G+", "Occupational Personality Questionnaire OPQ32r"]
-    if any(term in q for term in ("contact centre", "contact center", "inbound calls", "customer service")):
-        if "us" in q or "english" in q:
-            names.append("SVAR Spoken English (US) (New)")
-        names += ["Contact Center Call Simulation (New)", "Entry Level Customer Serv - Retail & Contact Center", "Customer Service Phone Simulation"]
-    if any(term in q for term in ("financial analyst", "finance", "financial accounting")):
-        names += ["SHL Verify Interactive – Numerical Reasoning", "Financial Accounting (New)", "Basic Statistics (New)", "Graduate Scenarios", "Occupational Personality Questionnaire OPQ32r"]
-    if "sales" in q and any(term in q for term in ("reskill", "re-skill", "audit", "organization", "transformation")):
-        names += ["Global Skills Assessment", "Global Skills Development Report", "Occupational Personality Questionnaire OPQ32r", "OPQ MQ Sales Report", "Sales Transformation 2.0 - Individual Contributor"]
-    if any(term in q for term in ("plant operator", "chemical facility", "safety", "dependability", "procedure compliance")):
-        if "industrial" in q and any(term in q for term in ("confirmed", "right fit")):
-            names += ["Manufac. & Indust. - Safety & Dependability 8.0", "Workplace Health and Safety (New)"]
-        else:
-            names += ["Dependability and Safety Instrument (DSI)", "Manufac. & Indust. - Safety & Dependability 8.0", "Workplace Health and Safety (New)"]
-    if any(term in q for term in ("hipaa", "medical terminology", "patient records", "healthcare admin")):
-        names += ["HIPAA (Security)", "Medical Terminology (New)", "Microsoft Word 365 - Essentials (New)", "Dependability and Safety Instrument (DSI)", "Occupational Personality Questionnaire OPQ32r"]
-    if any(term in q for term in ("excel", "word", "admin assistant")):
-        if any(term in q for term in ("simulation", "capabilities", "capture")):
-            names += ["Microsoft Excel 365 - Essentials (New)", "Microsoft Word 365 (New)"]
-        names += ["MS Excel (New)", "MS Word (New)", "Occupational Personality Questionnaire OPQ32r"]
-    if any(term in q for term in ("full-stack", "full stack", "spring", "core java", "microservice")):
-        names += ["Core Java (Advanced Level) (New)", "Spring (New)", "SQL (New)"]
-        if "drop rest" not in q and "rest out" not in q:
-            names.append("RESTful Web Services (New)")
-        if "aws" in q:
-            names.append("Amazon Web Services (AWS) Development (New)")
-        if "docker" in q:
-            names.append("Docker (New)")
-        names += ["SHL Verify Interactive G+", "Occupational Personality Questionnaire OPQ32r"]
-    if any(term in q for term in ("graduate management trainee", "recent graduates", "graduate scenarios")):
-        names += ["SHL Verify Interactive G+", "Graduate Scenarios"]
-        if "drop the opq" not in q and "remove the opq" not in q:
-            names.append("Occupational Personality Questionnaire OPQ32r")
-
-    pinned = []
-    for name in names:
-        item = _find(meta, name)
-        if item and item["link"] not in {p["link"] for p in pinned}:
-            product = dict(item)
-            product["semantic_score"] = max(product.get("semantic_score", 0.0), 2.0)
-            product["final_score"] = max(product.get("final_score", 0.0), 2.0)
-            pinned.append(product)
-    return pinned
-
-
-def _merge_candidates(pinned: list[dict], ranked: list[dict]) -> list[dict]:
-    seen = set()
-    merged = []
-    for item in pinned + ranked:
-        if item["link"] in seen:
-            continue
-        seen.add(item["link"])
-        merged.append(item)
-    return merged[:10]
-
-
 def _candidate_text(candidates: list[dict]) -> str:
     rows = []
     for item in candidates[:10]:
@@ -356,7 +285,6 @@ def run_turn(messages: list[dict], index, meta: list[dict]) -> dict:
     query = f"{history}\n{query}"
     candidates_raw = retrieve_top_k(query, index, meta, k=30)
     candidates = rerank(candidates_raw, query)
-    candidates = _merge_candidates(_pin_names(query, meta), candidates)
 
     if (
         intent.get("is_vague")

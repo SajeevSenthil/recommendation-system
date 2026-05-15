@@ -10,12 +10,17 @@ python scripts/build_index.py
 uvicorn app.main:app --host 0.0.0.0 --port 7860
 ```
 
-Set `GEMINI_API_KEY` before running with Gemini enabled. If `faiss.index` and
-`meta.pkl` are missing under `artifacts/`, or the embedding dependencies are
-unavailable, the app falls back to catalog-grounded lexical retrieval so
-`/health` and `/chat` still respond.
+Set `GEMINI_API_KEY` in `.env` or your deployment environment before starting.
+Optionally set `GEMINI_MODEL`; if omitted, the app chooses an available Gemini
+model that supports `generateContent`.
+The server requires `artifacts/faiss.index`, `artifacts/meta.pkl`, and the BGE
+embedding model. Build the index once with `python scripts/build_index.py`, then
+deploy those artifacts with the app.
 
-For local fallback-only smoke tests, set `SHL_DISABLE_GEMINI=1`.
+There is no keyword-search fallback in the runtime path. Retrieval is FAISS +
+BGE embeddings, followed by metadata reranking.
+At runtime the BGE model is loaded offline from the local Hugging Face cache; if
+it is not cached, startup fails fast instead of hanging on model download.
 
 ## Layout
 

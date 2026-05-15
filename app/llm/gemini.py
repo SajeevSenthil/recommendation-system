@@ -8,10 +8,36 @@ from app.core.config import load_dotenv
 
 _MODEL = None
 
+MODEL_PREFERENCES = (
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-flash",
+)
+
+
+def _resolve_model_name(genai) -> str:
+    configured = os.environ.get("GEMINI_MODEL")
+    if configured:
+        return configured
+
+    available = []
+    for model in genai.list_models():
+        methods = set(getattr(model, "supported_generation_methods", []) or [])
+        if "generateContent" in methods:
+            name = model.name.removeprefix("models/")
+            available.append(name)
+
+    for preferred in MODEL_PREFERENCES:
+        if preferred in available:
+            return preferred
+
+    if available:
+        return available[0]
+    raise RuntimeError("No Gemini model with generateContent support is available for this API key")
+
 
 def gemini(prompt: str, max_tokens: int, temperature: float) -> str:
-    if os.environ.get("SHL_DISABLE_GEMINI") == "1":
-        raise RuntimeError("Gemini disabled by SHL_DISABLE_GEMINI")
     load_dotenv()
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
@@ -23,7 +49,7 @@ def gemini(prompt: str, max_tokens: int, temperature: float) -> str:
 
         if _MODEL is None:
             genai.configure(api_key=api_key)
-            _MODEL = genai.GenerativeModel("gemini-1.5-flash")
+            _MODEL = genai.GenerativeModel(_resolve_model_name(genai))
         resp = _MODEL.generate_content(
             prompt,
             generation_config=genai.GenerationConfig(
