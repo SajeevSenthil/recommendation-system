@@ -33,7 +33,7 @@ Conversation:
 {history}
 
 Return exactly this shape:
-{
+{{
   "role": "<job role string or null>",
   "seniority": "<entry|mid|senior|manager|executive or null>",
   "domain": "<tech|sales|leadership|clinical|operations|general or null>",
@@ -44,7 +44,7 @@ Return exactly this shape:
   "is_off_topic": false,
   "is_vague": false,
   "clarification_already_asked": false
-}
+}}
 """.strip()
 
 

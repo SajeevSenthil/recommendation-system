@@ -286,13 +286,15 @@ def run_turn(messages: list[dict], index, meta: list[dict]) -> dict:
     candidates_raw = retrieve_top_k(query, index, meta, k=30)
     candidates = rerank(candidates_raw, query)
 
-    if (
-        intent.get("is_vague")
-        and intent.get("role") is None
-        and not intent.get("clarification_already_asked")
-        and turn_count < 6
-    ):
-        return CLARIFICATION
+    if not intent.get("clarification_already_asked") and turn_count < 6:
+        if intent.get("is_vague") and not intent.get("role"):
+            return CLARIFICATION
+        if intent.get("role") and not intent.get("seniority"):
+            return {
+                "reply": f"Got it. You are hiring for a {intent['role']}. What is the seniority or experience level you are looking for?",
+                "recommendations": [],
+                "end_of_conversation": False,
+            }
 
     if not candidates:
         return CLARIFICATION if turn_count < 6 else REFUSAL
