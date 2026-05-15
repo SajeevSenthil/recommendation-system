@@ -1,3 +1,12 @@
+---
+title: SHL Assessment Recommender
+emoji: 🚀
+colorFrom: blue
+colorTo: purple
+sdk: docker
+pinned: false
+---
+
 # SHL Assessment Recommender API
 
 A conversational, stateless FastAPI backend for an SHL assessment recommender. This agent clarifies recruiting intents, enforces strict recommendation constraints, and retrieves tests from a local FAISS index built on the official SHL catalog.
