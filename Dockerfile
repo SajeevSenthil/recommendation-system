@@ -10,5 +10,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code
 COPY . .
 
+# Build the FAISS index inside the container so we don't have to push binary files
+RUN python scripts/build_index.py
+
 # Hugging Face Spaces exposes port 7860 by default
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]
