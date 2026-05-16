@@ -56,7 +56,8 @@ Before any semantic search occurs, the agent must understand exactly what the us
 
 Because the API is stateless, you must pass the full conversation history back to the `/chat` endpoint on every turn.
 
-**Example 1: Vague Request (Forces Clarification)**
+### 1. Vague Request (Forces Clarification)
+The system intercepts queries lacking constraints and returns an empty recommendation list while asking a follow-up question.
 ```json
 {
   "messages": [
@@ -64,8 +65,10 @@ Because the API is stateless, you must pass the full conversation history back t
   ]
 }
 ```
+![Clarification Example](docs/images/clarification.png)
 
-**Example 2: Providing Context (Forces Recommendation)**
+### 2. Providing Context (Forces Recommendation)
+Once constraints are met, the pure-Python reranker ensures the top candidate matches the seniority requested.
 ```json
 {
   "messages": [
@@ -75,6 +78,11 @@ Because the API is stateless, you must pass the full conversation history back t
   ]
 }
 ```
+![Recommendation Example](docs/images/recommendation.png)
+
+### 3. Catalog-Grounded Comparisons
+When explicitly asked to compare tests, the agent will extract the items, retrieve them from FAISS, and answer based strictly on catalog context.
+![Comparison Example](docs/images/comparison.png)
 
 ---
 
