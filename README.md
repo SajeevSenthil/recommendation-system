@@ -5,6 +5,38 @@ A conversational, stateless FastAPI backend for an SHL assessment recommender. T
 
 ## 🏗️ Architecture & Methodologies
 
+```mermaid
+flowchart TD
+    %% Styling
+    classDef client fill:#3b82f6,stroke:#fff,stroke-width:2px,color:#fff,rx:5px
+    classDef api fill:#10b981,stroke:#fff,stroke-width:2px,color:#fff,rx:5px
+    classDef llm fill:#8b5cf6,stroke:#fff,stroke-width:2px,color:#fff,rx:5px
+    classDef faiss fill:#f59e0b,stroke:#fff,stroke-width:2px,color:#fff,rx:5px
+    classDef logic fill:#64748b,stroke:#fff,stroke-width:2px,color:#fff,rx:5px
+    classDef guard fill:#ef4444,stroke:#fff,stroke-width:2px,color:#fff,rx:5px
+
+    A[Client Request<br/>POST /chat]:::client --> B(FastAPI Endpoint):::api
+    B --> C{Intent Extraction}:::logic
+    
+    C -- Regex Heuristics --> D
+    C -- Gemini API --> D[Parsed Intent JSON<br/>role, seniority, domain]:::llm
+    
+    D --> E{Action Decision}:::logic
+    
+    E -- Vague Query --> F[Return Clarification Question]:::api
+    E -- Comparison --> G[(FAISS Index<br/>Compare Specific Tests)]:::faiss
+    E -- Valid Recommendation --> G[(FAISS Index<br/>Semantic Search<br/>bge-small-en-v1.5)]:::faiss
+    
+    G -- Top 30 Candidates --> H[Custom Python Reranker<br/>Seniority & Keyword Boost]:::logic
+    
+    H -- Top Candidates --> I[Gemini API<br/>Response Generation]:::llm
+    
+    I -- Raw JSON Response --> J[Guardrails Interceptor<br/>Validate URLs, Exact Names, Max 10]:::guard
+    
+    J -- Sanitized JSON --> K[Final Output to Client]:::client
+    F --> K
+```
+
 This system was designed with a strict emphasis on deterministic guardrails and retrieval accuracy, prioritizing reliability over the creative freedom of a Large Language Model.
 
 ### 1. Intent Extraction Engine
