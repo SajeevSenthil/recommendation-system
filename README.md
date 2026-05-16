@@ -65,7 +65,7 @@ The system intercepts queries lacking constraints and returns an empty recommend
   ]
 }
 ```
-![Clarification Example](docs/images/clarification.png)
+![Clarification Example](assets/1_clarification.png)
 
 ### 2. Providing Context (Forces Recommendation)
 Once constraints are met, the pure-Python reranker ensures the top candidate matches the seniority requested.
@@ -78,11 +78,11 @@ Once constraints are met, the pure-Python reranker ensures the top candidate mat
   ]
 }
 ```
-![Recommendation Example](docs/images/recommendation.png)
+![Recommendation Example](assets/2_recommendation.png)
 
 ### 3. Catalog-Grounded Comparisons
 When explicitly asked to compare tests, the agent will extract the items, retrieve them from FAISS, and answer based strictly on catalog context.
-![Comparison Example](docs/images/comparison.png)
+![Comparison Example](assets/3_comparison.png)
 
 ---
 
