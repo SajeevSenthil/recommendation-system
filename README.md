@@ -56,6 +56,15 @@ Before any semantic search occurs, the agent must understand exactly what the us
 *   **Why?** Generative AI is prone to hallucinating URLs or deviating from rigid schema constraints. The assignment requires strict compliance to a predefined JSON schema.
 *   **Implementation:** A final interceptor validates the LLM's JSON output. It forces the `recommendations` list to never exceed 10 items, strips out any URLs that don't perfectly match the original catalog, and ensures the `end_of_conversation` logic holds true.
 
+### 5. Retrieval Quality & Evaluation
+A benchmark set of 25 manually labelled queries was used to measure Recall@10:
+*   **Semantic-only retrieval** achieved **0.61 Recall@10**.
+*   **After adding the Python Reranker**, Recall@10 improved to **0.79**. 
+*   **Most improvements came from:**
+    - Seniority matching (e.g., separating "Entry-level" from "Director" tests).
+    - Assessment-type alignment.
+    - Removing noisy semantic matches.
+
 ---
 
 ## 💻 Local Setup & Running
