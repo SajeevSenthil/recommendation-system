@@ -1,11 +1,3 @@
----
-title: SHL Assessment Recommender
-emoji: 🚀
-colorFrom: blue
-colorTo: purple
-sdk: docker
-pinned: false
----
 
 # SHL Assessment Recommender API
 
