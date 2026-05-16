@@ -3,6 +3,12 @@
 
 A conversational, stateless FastAPI backend for an SHL assessment recommender. This agent clarifies recruiting intents, enforces strict recommendation constraints, and retrieves tests from a local FAISS index built on the official SHL catalog.
 
+## Table of Contents
+- [🏗️ Architecture & Methodologies](#️-architecture--methodologies)
+- [💻 Local Setup & Running](#-local-setup--running)
+- [🧪 Testing The Endpoints (Example Conversations)](#-testing-the-endpoints-example-conversations)
+- [☁️ Deployment to Hugging Face Spaces](#️-deployment-to-hugging-face-spaces)
+
 ## 🏗️ Architecture & Methodologies
 
 ```mermaid
